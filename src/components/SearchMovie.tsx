@@ -4,14 +4,17 @@ import Footer from './Footer';
 
 // Define the movie type
 interface Movie {
+    id: number;
     title: string;
     poster_path: string;
 }
 
 const SearchMovie: React.FC = () => {
-    const [movies, setMovies] = useState<Movie[]>([]); // Specify the type of movies
-    const [searchTerm, setSearchTerm] = useState(''); // State for search input
-    const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]); // State for filtered movies
+    const [movies, setMovies] = useState<Movie[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
+    const [trailerKey, setTrailerKey] = useState<string | null>(null); // For the trailer key
+    const [showModal, setShowModal] = useState(false); // For modal visibility
 
     const getMovies = () => {
         try {
@@ -21,10 +24,32 @@ const SearchMovie: React.FC = () => {
                 .then((res) => res.json())
                 .then((json) => {
                     setMovies(json.results);
-                    setFilteredMovies(json.results); // Initialize filtered movies
+                    setFilteredMovies(json.results);
                 });
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const getTrailer = async (movieId: number) => {
+        try {
+            const response = await fetch(
+                `https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=66b41facdbba6abf7ec79518e9e9c4aa`
+            );
+            const data = await response.json();
+
+            const trailer = data.results.find(
+                (video: any) => video.type === 'Trailer' && video.site === 'YouTube'
+            );
+
+            if (trailer) {
+                setTrailerKey(trailer.key);
+                setShowModal(true);
+            } else {
+                alert('Trailer not available for this movie.');
+            }
+        } catch (err) {
+            console.error('Error fetching trailer:', err);
         }
     };
 
@@ -33,7 +58,6 @@ const SearchMovie: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        // Filter movies based on the search term
         if (searchTerm === '') {
             setFilteredMovies(movies);
         } else {
@@ -42,7 +66,7 @@ const SearchMovie: React.FC = () => {
             );
             setFilteredMovies(filtered);
         }
-    }, [searchTerm, movies]); // Re-run this effect when searchTerm or movies change
+    }, [searchTerm, movies]);
 
     return (
         <>
@@ -66,7 +90,7 @@ const SearchMovie: React.FC = () => {
                                 placeholder="Search Movies..."
                                 className="w-full outline-none bg-transparent text-gray-600 text-sm text-white"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)} // Update search term
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
 
@@ -77,7 +101,8 @@ const SearchMovie: React.FC = () => {
                             {filteredMovies.map((movie, index) => (
                                 <div
                                     key={index}
-                                    className="max-w-sm rounded overflow-hidden shadow-lg mt-2 ml-2 hover:scale-125 transition duration-500"
+                                    className="max-w-sm rounded overflow-hidden shadow-lg mt-2 ml-2 hover:scale-125 transition duration-500 cursor-pointer"
+                                    onClick={() => getTrailer(movie.id)} // Fetch trailer on click
                                 >
                                     <img
                                         className="w-full"
@@ -95,6 +120,30 @@ const SearchMovie: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Trailer Modal */}
+            {showModal && trailerKey && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center">
+                    <div className="relative w-4/5 h-4/5 bg-white rounded-lg">
+                        <button
+                            className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded"
+                            onClick={() => setShowModal(false)} // Close modal
+                        >
+                            Close
+                        </button>
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube.com/embed/${trailerKey}`}
+                            title="YouTube trailer"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-slate-950">
                 <Footer />
             </div>

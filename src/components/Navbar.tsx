@@ -7,6 +7,7 @@ import love from "../images/love.png"
 import action from "../images/action.png"
 import comedy from "../images/comedy.png"
 import { Link } from 'react-router-dom'
+import { Fade } from "react-awesome-reveal";
 
 const Navbar = () => {
 
@@ -26,14 +27,15 @@ const Navbar = () => {
                 <img src={action} className='w-16 mt-8 ml-5 cursor-pointer'/>
                 <img src={comedy} className='w-16 mt-8 ml-5 cursor-pointer'/>
             </div>
-         {touch &&<div className='z-20 ml-8 w-20 bg-black h-screen font-bold text-base text-slate-300'>
+         {touch && <Fade><div className='z-20 ml-8 w-20 bg-black bg-opacity-50 h-screen font-bold text-base text-slate-300'>
                     <h4 className='mt-20'>Signin</h4>
                     <h4 className='mt-8'>Search</h4>
                     <h4 className='mt-12'>Home</h4>
                     <h4 className='mt-10'>Love</h4>
                     <h4 className='mt-10'>Action</h4>
                     <h4 className='mt-11'>Comedy</h4>    
-            </div>}
+            </div>
+            </Fade>}
         </div>
     )
 }
